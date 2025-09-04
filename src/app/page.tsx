@@ -23,7 +23,7 @@ export default function Home() {
       </header>
 
       <main className="flex-grow">
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
+        <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="text-left">
                 <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold text-foreground leading-tight">
@@ -43,8 +43,8 @@ export default function Home() {
                     </Button>
                 </div>
               </div>
-              <div className="relative h-64 md:h-full w-full rounded-xl overflow-hidden shadow-2xl">
-                 <Image src="https://picsum.photos/800/600" alt="Doctor and patient" layout="fill" objectFit="cover" data-ai-hint="doctor patient" />
+              <div className="relative h-80 md:h-96 w-full flex items-center justify-center">
+                 <Image src="https://storage.googleapis.com/stedi-dev-public-assets/meditrack/doctor-hero.png" alt="Cartoon doctor" width={400} height={400} objectFit="contain" data-ai-hint="cartoon doctor" />
               </div>
             </div>
         </section>
