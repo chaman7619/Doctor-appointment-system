@@ -9,7 +9,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 md:p-8 bg-background">
       <header className="text-center mb-12">
         <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">
-          Welcome to MediTrack Pro
+          Welcome to MediTrack
         </h1>
         <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
           Your trusted partner in modern healthcare management. Access your portal to get started.
@@ -66,8 +66,9 @@ export default function Home() {
       </div>
 
       <footer className="absolute bottom-4 text-center text-muted-foreground text-sm">
-        <p>MediTrack Pro &copy; {new Date().getFullYear()}</p>
+        <p>MediTrack &copy; {new Date().getFullYear()}</p>
       </footer>
     </div>
   );
 }
+

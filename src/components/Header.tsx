@@ -16,7 +16,7 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-2">
             <Hospital className="h-8 w-8 text-primary" />
             <span className="font-headline text-xl font-bold text-foreground">
-              MediTrack Pro
+              MediTrack
             </span>
           </Link>
           <div className="flex items-center gap-4">
@@ -41,3 +41,4 @@ export default function Header() {
     </header>
   );
 }
+

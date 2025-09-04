@@ -4,7 +4,7 @@ import './globals.css';
 import { Providers } from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: 'MediTrack Pro',
+  title: 'MediTrack',
   description: 'A modern hospital management system.',
 };
 
@@ -29,3 +29,4 @@ export default function RootLayout({
     </html>
   );
 }
+

@@ -1,5 +1,5 @@
 
-# MediTrack Pro
+# MediTrack
 
 This is a complete, demo-ready hospital management web application built with Next.js. The application features three distinct user roles: Admin, Doctors, and Patients.
 
@@ -47,3 +47,4 @@ To test the Doctor and Patient functionalities, you will need to create new acco
 - Navigate to the **Doctor Login** or **Patient Login** portals from the homepage.
 - Click the "Sign Up" link to access the registration form.
 - Create as many patient and doctor accounts as you need to test the application features.
+
