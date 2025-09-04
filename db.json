@@ -1,6 +1,35 @@
-
 {
-  "patients": [],
-  "doctors": [],
-  "appointments": []
+  "patients": [
+    {
+      "id": "13edff87-cc9c-401f-b0a6-3dc5e1207201",
+      "fullName": "chaman",
+      "email": "chamanchangappa140@gmail.com",
+      "password": "chaman123",
+      "role": "patient"
+    }
+  ],
+  "doctors": [
+    {
+      "id": "6d2f4da7-2995-4cb4-81ec-04d88ebfe64a",
+      "fullName": "strange",
+      "email": "strange123@gmail.com",
+      "username": "drstrange",
+      "password": "strange123",
+      "specialization": "heart",
+      "bio": "im dr steapen strange",
+      "role": "doctor"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "9a450066-9bdd-4228-866c-244704531c97",
+      "patientId": "13edff87-cc9c-401f-b0a6-3dc5e1207201",
+      "doctorId": "6d2f4da7-2995-4cb4-81ec-04d88ebfe64a",
+      "patientName": "chaman",
+      "doctorName": "strange",
+      "date": "2025-09-06",
+      "time": "14:00",
+      "status": "upcoming"
+    }
+  ]
 }

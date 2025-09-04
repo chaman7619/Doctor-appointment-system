@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Appointment, Doctor, Patient } from '@/lib/database';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Users, Stethoscope, CalendarDays } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
