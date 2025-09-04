@@ -44,7 +44,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="relative h-80 md:h-96 w-full flex items-center justify-center">
-                 <Image src="https://storage.googleapis.com/stedi-dev-public-assets/meditrack/doctor-hero.png" alt="Cartoon doctor" width={400} height={400} objectFit="contain" data-ai-hint="cartoon doctor" />
+                 <Image src="https://storage.googleapis.com/stedi-dev-public-assets/meditrack/doctor-hero.png" alt="Cartoon doctor" layout="fill" objectFit="contain" data-ai-hint="cartoon doctor" />
               </div>
             </div>
         </section>
