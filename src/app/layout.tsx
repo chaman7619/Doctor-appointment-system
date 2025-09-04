@@ -23,10 +23,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased h-full bg-background">
+      <body className="font-body antialiased h-full bg-background selection:bg-primary/20">
         <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-

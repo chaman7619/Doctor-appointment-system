@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,7 +16,7 @@ import type { Doctor } from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle } from "lucide-react";
+import { CalendarIcon, PlusCircle, Loader2 } from "lucide-react";
 
 const timeSlots = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
 
@@ -29,12 +29,14 @@ const formSchema = z.object({
 interface BookAppointmentDialogProps {
   doctors: Doctor[];
   onAppointmentBooked: () => void;
+  children?: ReactNode;
 }
 
-export function BookAppointmentDialog({ doctors, onAppointmentBooked }: BookAppointmentDialogProps) {
+export function BookAppointmentDialog({ doctors, onAppointmentBooked, children }: BookAppointmentDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,6 +45,7 @@ export function BookAppointmentDialog({ doctors, onAppointmentBooked }: BookAppo
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) return;
     
+    setIsSubmitting(true);
     const submissionData = {
         ...values,
         patientId: user.id,
@@ -66,13 +69,20 @@ export function BookAppointmentDialog({ doctors, onAppointmentBooked }: BookAppo
         }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Booking Failed", description: error.message });
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+            form.reset();
+        }
+    }}>
       <DialogTrigger asChild>
-        <Button><PlusCircle className="mr-2 h-4 w-4"/> Book New Appointment</Button>
+        {children || <Button><PlusCircle className="mr-2 h-4 w-4"/> Book New Appointment</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -80,7 +90,7 @@ export function BookAppointmentDialog({ doctors, onAppointmentBooked }: BookAppo
           <DialogDescription>Select a doctor, date, and time for your visit.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                 <FormField
                     control={form.control}
                     name="doctorId"
@@ -162,8 +172,11 @@ export function BookAppointmentDialog({ doctors, onAppointmentBooked }: BookAppo
                         </FormItem>
                     )}
                 />
-                 <DialogFooter>
-                    <Button type="submit" className="w-full">Confirm Appointment</Button>
+                 <DialogFooter className="pt-4">
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                        Confirm Appointment
+                    </Button>
                 </DialogFooter>
             </form>
         </Form>

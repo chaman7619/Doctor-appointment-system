@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Appointment, Doctor, Patient } from '@/lib/database';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Users, Stethoscope, CalendarDays } from 'lucide-react';
+import { Users, Stethoscope, CalendarDays, Activity } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminDashboard() {
@@ -17,6 +17,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         async function fetchData() {
             try {
+                setLoading(true);
                 const [patientsRes, doctorsRes, appointmentsRes] = await Promise.all([
                     fetch('/api/patients'),
                     fetch('/api/doctors'),
@@ -42,18 +43,30 @@ export default function AdminDashboard() {
         [...appointments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), 
     [appointments]);
 
+    const upcomingAppointmentsCount = useMemo(() => 
+        appointments.filter(apt => apt.status === 'upcoming').length,
+    [appointments]);
+
     if (loading) {
-        return <div className="space-y-4">
+        return (
+          <div className="space-y-6">
             <Skeleton className="h-10 w-1/3" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Skeleton className="h-28 w-full" />
+              <Skeleton className="h-28 w-full" />
+              <Skeleton className="h-28 w-full" />
+              <Skeleton className="h-28 w-full" />
+            </div>
             <Skeleton className="h-96 w-full" />
-        </div>
+          </div>
+        )
     }
 
     return (
-        <div className="space-y-8">
-            <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
+        <div className="space-y-6">
+            <h1 className="font-headline text-3xl font-bold">Admin Overview</h1>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
@@ -61,6 +74,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{patients.length}</div>
+                        <p className="text-xs text-muted-foreground">registered in the system</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -70,6 +84,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{doctors.length}</div>
+                        <p className="text-xs text-muted-foreground">available for consultation</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -79,13 +94,24 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{appointments.length}</div>
+                        <p className="text-xs text-muted-foreground">booked all-time</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Upcoming Appointments</CardTitle>
+                        <Activity className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{upcomingAppointmentsCount}</div>
+                        <p className="text-xs text-muted-foreground">currently scheduled</p>
                     </CardContent>
                 </Card>
             </div>
 
             <Tabs defaultValue="appointments">
-                <TabsList>
-                    <TabsTrigger value="appointments">All Appointments</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="appointments">Appointments</TabsTrigger>
                     <TabsTrigger value="patients">Patients</TabsTrigger>
                     <TabsTrigger value="doctors">Doctors</TabsTrigger>
                 </TabsList>
@@ -101,22 +127,26 @@ export default function AdminDashboard() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Patient</TableHead>
-                                        <TableHead>Doctor</TableHead>
+                                        <TableHead className="hidden md:table-cell">Doctor</TableHead>
                                         <TableHead>Date</TableHead>
-                                        <TableHead>Time</TableHead>
+                                        <TableHead className="hidden sm:table-cell">Time</TableHead>
                                         <TableHead>Status</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {sortedAppointments.map(apt => (
+                                    {sortedAppointments.length > 0 ? sortedAppointments.map(apt => (
                                         <TableRow key={apt.id}>
                                             <TableCell>{apt.patientName}</TableCell>
-                                            <TableCell>{apt.doctorName}</TableCell>
+                                            <TableCell className="hidden md:table-cell">{apt.doctorName}</TableCell>
                                             <TableCell>{apt.date}</TableCell>
-                                            <TableCell>{apt.time}</TableCell>
+                                            <TableCell className="hidden sm:table-cell">{apt.time}</TableCell>
                                             <TableCell className="capitalize">{apt.status}</TableCell>
                                         </TableRow>
-                                    ))}
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center h-24">No appointments found.</TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -138,12 +168,16 @@ export default function AdminDashboard() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {patients.map(p => (
+                                    {patients.length > 0 ? patients.map(p => (
                                         <TableRow key={p.id}>
                                             <TableCell>{p.fullName}</TableCell>
                                             <TableCell>{p.email}</TableCell>
                                         </TableRow>
-                                    ))}
+                                    )) : (
+                                      <TableRow>
+                                          <TableCell colSpan={2} className="text-center h-24">No patients found.</TableCell>
+                                      </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -161,20 +195,24 @@ export default function AdminDashboard() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Name</TableHead>
-                                        <TableHead>Username</TableHead>
+                                        <TableHead className="hidden sm:table-cell">Username</TableHead>
                                         <TableHead>Specialization</TableHead>
-                                        <TableHead>Email</TableHead>
+                                        <TableHead className="hidden md:table-cell">Email</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {doctors.map(d => (
+                                    {doctors.length > 0 ? doctors.map(d => (
                                         <TableRow key={d.id}>
                                             <TableCell>{d.fullName}</TableCell>
-                                            <TableCell>{d.username}</TableCell>
+                                            <TableCell className="hidden sm:table-cell">{d.username}</TableCell>
                                             <TableCell>{d.specialization}</TableCell>
-                                            <TableCell>{d.email}</TableCell>
+                                            <TableCell className="hidden md:table-cell">{d.email}</TableCell>
                                         </TableRow>
-                                    ))}
+                                    )) : (
+                                       <TableRow>
+                                            <TableCell colSpan={4} className="text-center h-24">No doctors found.</TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
