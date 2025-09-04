@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle, Loader2 } from "lucide-react";
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const timeSlots = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
 
@@ -43,30 +45,43 @@ export function BookAppointmentDialog({ doctors, onAppointmentBooked, children }
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) return;
+    if (!user || user.role !== 'patient') return;
     
     setIsSubmitting(true);
-    const submissionData = {
-        ...values,
-        patientId: user.id,
-        date: format(values.date, 'yyyy-MM-dd'),
-    };
+    const formattedDate = format(values.date, 'yyyy-MM-dd');
 
     try {
-        const res = await fetch('/api/appointments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(submissionData),
-        });
-        const data = await res.json();
-        if (res.ok) {
-            toast({ title: "Appointment Booked!", description: "Your appointment has been successfully scheduled." });
-            onAppointmentBooked();
-            setOpen(false);
-            form.reset();
-        } else {
-            throw new Error(data.message || "Failed to book appointment.");
+        // Check for existing appointment
+        const q = query(collection(db, "appointments"), 
+            where("doctorId", "==", values.doctorId),
+            where("date", "==", formattedDate),
+            where("time", "==", values.time),
+            where("status", "==", "upcoming")
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            throw new Error("This time slot is already booked.");
         }
+
+        const doctor = doctors.find(d => d.id === values.doctorId);
+        if (!doctor) {
+            throw new Error("Selected doctor not found.");
+        }
+
+        await addDoc(collection(db, 'appointments'), {
+            patientId: user.id,
+            patientName: user.fullName,
+            doctorId: values.doctorId,
+            doctorName: doctor.fullName,
+            date: formattedDate,
+            time: values.time,
+            status: 'upcoming',
+        });
+        
+        toast({ title: "Appointment Booked!", description: "Your appointment has been successfully scheduled." });
+        if (onAppointmentBooked) onAppointmentBooked();
+        setOpen(false);
+        form.reset();
     } catch (error: any) {
         toast({ variant: "destructive", title: "Booking Failed", description: error.message });
     } finally {
@@ -141,7 +156,7 @@ export function BookAppointmentDialog({ doctors, onAppointmentBooked, children }
                                         mode="single"
                                         selected={field.value}
                                         onSelect={field.onChange}
-                                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                        disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                                         initialFocus
                                     />
                                 </PopoverContent>

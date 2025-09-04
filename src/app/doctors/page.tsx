@@ -6,15 +6,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Image from "next/image";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-async function getDoctors() {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
-    const res = await fetch(`${baseUrl}/api/doctors`, { cache: 'no-store' });
-    
-    if (!res.ok) {
-        throw new Error('Failed to fetch doctors');
-    }
-    return res.json();
+async function getDoctors(): Promise<Doctor[]> {
+    const doctorsQuery = query(collection(db, "users"), where("role", "==", "doctor"));
+    const querySnapshot = await getDocs(doctorsQuery);
+    const doctors = querySnapshot.docs.map(doc => doc.data() as Doctor);
+    return doctors;
 }
 
 export default async function DoctorsPage() {

@@ -23,6 +23,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
+import { collection, query, where, getDocs, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function PatientDashboard() {
     const { user } = useAuth();
@@ -31,26 +33,29 @@ export default function PatientDashboard() {
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [loading, setLoading] = useState(true);
     
-    const fetchAppointments = useCallback(async () => {
+    const fetchAppointments = useCallback(() => {
         if (user?.id) {
-            try {
-                const res = await fetch(`/api/appointments/patient/${user.id}`);
-                const data = await res.json();
-                setAppointments(data);
-            } catch (error) {
-                console.error("Failed to fetch appointments", error);
+            const q = query(collection(db, "appointments"), where("patientId", "==", user.id));
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const appointmentsData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Appointment));
+                setAppointments(appointmentsData);
+            }, (error) => {
+                console.error("Failed to fetch appointments in real-time", error);
                 toast({ variant: "destructive", title: "Error", description: "Could not fetch appointments." });
-            }
+            });
+            return unsubscribe;
         }
     }, [user?.id, toast]);
 
     useEffect(() => {
-        async function fetchData() {
-            setLoading(true);
-            await fetchAppointments();
+        setLoading(true);
+        const unsubscribe = fetchAppointments();
+        
+        async function fetchDoctors() {
             try {
-                const doctorsRes = await fetch('/api/doctors');
-                const doctorsData = await doctorsRes.json();
+                const doctorsQuery = query(collection(db, "users"), where("role", "==", "doctor"));
+                const doctorsSnapshot = await getDocs(doctorsQuery);
+                const doctorsData = doctorsSnapshot.docs.map(doc => doc.data() as Doctor);
                 setDoctors(doctorsData);
             } catch (error) {
                 console.error("Failed to fetch doctors", error);
@@ -58,22 +63,21 @@ export default function PatientDashboard() {
                 setLoading(false);
             }
         }
-        fetchData();
+        
+        fetchDoctors();
+
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, [fetchAppointments]);
     
     const handleCancelAppointment = async (appointmentId: string) => {
         try {
-            const res = await fetch(`/api/appointments/${appointmentId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'canceled' })
-            });
-            if (res.ok) {
-                toast({ title: "Success", description: "Appointment canceled successfully." });
-                fetchAppointments();
-            } else {
-                throw new Error('Failed to cancel appointment');
-            }
+            const appointmentRef = doc(db, "appointments", appointmentId);
+            await updateDoc(appointmentRef, { status: 'canceled' });
+            toast({ title: "Success", description: "Appointment canceled successfully." });
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: "Could not cancel the appointment." });
         }
@@ -111,7 +115,7 @@ export default function PatientDashboard() {
                     <h1 className="font-headline text-3xl font-bold">Welcome, {user?.fullName}!</h1>
                     <p className="text-muted-foreground">Here's your personal health dashboard.</p>
                 </div>
-                <BookAppointmentDialog doctors={doctors} onAppointmentBooked={fetchAppointments} />
+                <BookAppointmentDialog doctors={doctors} onAppointmentBooked={fetchAppointments as () => void} />
             </div>
             
             <Card className="border-primary/50 border-2">
@@ -167,7 +171,7 @@ export default function PatientDashboard() {
                             <Info className="w-10 h-10"/>
                             <p className="font-semibold">You have no upcoming appointments.</p>
                             <p className="text-sm max-w-sm">Ready to see a doctor? Click the button below to schedule your next visit.</p>
-                             <BookAppointmentDialog doctors={doctors} onAppointmentBooked={fetchAppointments}>
+                             <BookAppointmentDialog doctors={doctors} onAppointmentBooked={fetchAppointments as () => void}>
                                  <Button>
                                     <PlusCircle className="mr-2 h-4 w-4"/> Book an Appointment
                                  </Button>
@@ -219,4 +223,3 @@ export default function PatientDashboard() {
         </div>
     );
 }
-

@@ -4,9 +4,11 @@ import { useEffect, useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Appointment, Doctor, Patient } from '@/lib/database';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Users, Stethoscope, CalendarDays, Activity } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { collection, getDocs, query, where } from "firebase/firestore"; 
+import { db } from "@/lib/firebase";
 
 export default function AdminDashboard() {
     const [patients, setPatients] = useState<Patient[]>([]);
@@ -18,14 +20,20 @@ export default function AdminDashboard() {
         async function fetchData() {
             try {
                 setLoading(true);
-                const [patientsRes, doctorsRes, appointmentsRes] = await Promise.all([
-                    fetch('/api/patients'),
-                    fetch('/api/doctors'),
-                    fetch('/api/appointments')
+
+                const patientsQuery = query(collection(db, "users"), where("role", "==", "patient"));
+                const doctorsQuery = query(collection(db, "users"), where("role", "==", "doctor"));
+                const appointmentsQuery = collection(db, "appointments");
+
+                const [patientsSnapshot, doctorsSnapshot, appointmentsSnapshot] = await Promise.all([
+                    getDocs(patientsQuery),
+                    getDocs(doctorsQuery),
+                    getDocs(appointmentsQuery)
                 ]);
-                const patientsData = await patientsRes.json();
-                const doctorsData = await doctorsRes.json();
-                const appointmentsData = await appointmentsRes.json();
+
+                const patientsData = patientsSnapshot.docs.map(doc => doc.data() as Patient);
+                const doctorsData = doctorsSnapshot.docs.map(doc => doc.data() as Doctor);
+                const appointmentsData = appointmentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Appointment));
 
                 setPatients(patientsData);
                 setDoctors(doctorsData);

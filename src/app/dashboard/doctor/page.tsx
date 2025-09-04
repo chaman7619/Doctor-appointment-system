@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { CalendarDays, Users, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
+import { db } from '@/lib/firebase';
 
 export default function DoctorDashboard() {
     const { user } = useAuth();
@@ -17,19 +19,19 @@ export default function DoctorDashboard() {
 
     useEffect(() => {
         if (user?.id) {
-            async function fetchAppointments() {
-                try {
-                    setLoading(true);
-                    const res = await fetch(`/api/appointments/doctor/${user.id}`);
-                    const data = await res.json();
-                    setAppointments(data);
-                } catch (error) {
-                    console.error("Failed to fetch appointments", error);
-                } finally {
-                    setLoading(false);
-                }
-            }
-            fetchAppointments();
+            setLoading(true);
+            const appointmentsQuery = query(collection(db, "appointments"), where("doctorId", "==", user.id));
+            
+            const unsubscribe = onSnapshot(appointmentsQuery, (querySnapshot) => {
+                const appointmentsData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Appointment));
+                setAppointments(appointmentsData);
+                setLoading(false);
+            }, (error) => {
+                console.error("Failed to fetch appointments", error);
+                setLoading(false);
+            });
+
+            return () => unsubscribe();
         }
     }, [user?.id]);
     
