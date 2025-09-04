@@ -44,7 +44,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="relative h-80 md:h-96 w-full flex items-center justify-center">
-                 <Image src="https://photos.app.goo.gl/wd1cC1EdexXkPnZr5" alt="Cartoon doctor" layout="fill" objectFit="contain" data-ai-hint="cartoon doctor" />
+                 <Image src="https://picsum.photos/800/600" alt="Modern medical facility" layout="fill" objectFit="cover" className="rounded-lg shadow-xl" data-ai-hint="medical facility" />
               </div>
             </div>
         </section>
